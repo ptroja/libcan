@@ -36,6 +36,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   * These methods are implemented by all CAN communication backends.
   */
 
+#include <unistd.h>
+
 #include <tulibs/config.h>
 
 /** Predefined CAN constants

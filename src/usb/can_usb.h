@@ -40,55 +40,50 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "can.h"
 
-#define CAN_SERIAL_OPCODE_READ                0x10
-#define CAN_SERIAL_OPCODE_WRITE               0x11
+#define CAN_USB_OPCODE_READ                0x10
+#define CAN_USB_OPCODE_WRITE               0x11
 
-#define CAN_SERIAL_OKAY 		                  0x4F
-#define CAN_SERIAL_FAILED		                  0x46
-#define CAN_SERIAL_RESPONSE	                  0x00
+#define CAN_USB_OKAY 		                  0x4F
+#define CAN_USB_FAILED		                  0x46
+#define CAN_USB_RESPONSE	                  0x00
 
-/** Predefined CAN serial constants
+/** Predefined CAN usb constants
   */
 
-#define CAN_SERIAL_SEND_ID                    0x0600
-#define CAN_SERIAL_RECEIVE_ID                 0x0580
+#define CAN_USB_SEND_ID                    0x0600
+#define CAN_USB_RECEIVE_ID                 0x0580
 
-#define CAN_SERIAL_WRITE_SEND_1_BYTE          0x2F
-#define CAN_SERIAL_WRITE_SEND_2_BYTE          0x2B
-#define CAN_SERIAL_WRITE_SEND_4_BYTE          0x23
-#define CAN_SERIAL_WRITE_RECEIVE              0x60
+#define CAN_USB_WRITE_SEND_1_BYTE          0x2F
+#define CAN_USB_WRITE_SEND_2_BYTE          0x2B
+#define CAN_USB_WRITE_SEND_4_BYTE          0x23
+#define CAN_USB_WRITE_RECEIVE              0x60
 
-#define CAN_SERIAL_READ_RECEIVE_UNDEFINED     0x42
-#define CAN_SERIAL_READ_SEND                  0x40
+#define CAN_USB_READ_RECEIVE_UNDEFINED     0x42
+#define CAN_USB_READ_SEND                  0x40
 
-#define CAN_SERIAL_ABORT                      0xC0
+#define CAN_USB_ABORT                      0xC0
 
-/** Predefined CAN serial parameters
+/** Predefined CAN usb parameters
   */
-#define CAN_SERIAL_PARAMETER_DEVICE           "serial-dev"
-#define CAN_SERIAL_PARAMETER_BAUDRATE         "serial-baudrate"
-#define CAN_SERIAL_PARAMETER_DATABITS         "serial-databits"
-#define CAN_SERIAL_PARAMETER_STOPBITS         "serial-stopbits"
-#define CAN_SERIAL_PARAMETER_PARITY           "serial-parity"
-#define CAN_SERIAL_PARAMETER_TIMEOUT          "timeout"
+#define CAN_USB_PARAMETER_INDEX            "usb-index"
 
-/** Predefined CAN serial error codes
+/** Predefined CAN usb error codes
   */
-#define CAN_SERIAL_ERROR_NONE                 0
-#define CAN_SERIAL_ERROR_CONVERT              1
-#define CAN_SERIAL_ERROR_SEND                 2
-#define CAN_SERIAL_ERROR_RECEIVE              3
-#define CAN_SERIAL_ERROR_READ                 4
-#define CAN_SERIAL_ERROR_WRITE                5
-#define CAN_SERIAL_ERROR_NO_RESPONSE          6
-#define CAN_SERIAL_ERROR_UNEXPECTED_RESPONSE  7
-#define CAN_SERIAL_ERROR_CRC                  8
+#define CAN_USB_ERROR_NONE                 0
+#define CAN_USB_ERROR_CONVERT              1
+#define CAN_USB_ERROR_SEND                 2
+#define CAN_USB_ERROR_RECEIVE              3
+#define CAN_USB_ERROR_READ                 4
+#define CAN_USB_ERROR_WRITE                5
+#define CAN_USB_ERROR_NO_RESPONSE          6
+#define CAN_USB_ERROR_UNEXPECTED_RESPONSE  7
+#define CAN_USB_ERROR_CRC                  8
 
-/** \brief Predefined CAN serial error descriptions
+/** \brief Predefined CAN usb error descriptions
   */
-extern const char* can_serial_errors[];
+extern const char* can_usb_errors[];
 
-/** Convert an EPOS message into serial data.
+/** Convert an EPOS message into usb data.
   * \note This conversion is necessary to make EPOS messages compliant
   *   with the CAN protocol.
   * \param[in] dev The sending CAN device for which to convert the message.
@@ -97,12 +92,12 @@ extern const char* can_serial_errors[];
   * \return The number of bytes in the data frame to be sent or the
   *   negative error code.
   */
-int can_serial_from_epos(
+int can_usb_from_epos(
   can_device_p dev,
   can_message_p message,
   unsigned char* data);
 
-/** Convert serial data to an EPOS message.
+/** Convert usb data to an EPOS message.
   * \note This conversion is necessary in order to provide CAN protocol
   *   messages to libepos.
   * \param[in] dev The receiving CAN device for which to convert the message.
@@ -110,30 +105,30 @@ int can_serial_from_epos(
   * \param[in,out] message The CAN message to be converted.
   * \return The resulting negative error code.
   */
-int can_serial_to_epos(
+int can_usb_to_epos(
   can_device_p dev,
   unsigned char* data,
   can_message_p message);
 
-/** Send serial data frame to EPOS.
-  * \param[in] dev The open CAN serial device to send data to.
-  * \param[in] data An array containing the serial data frame to be sent.
-  * \param[in] num The size of the serial data frame to be sent.
-  * \return The number of bytes sent to the CAN serial device or the
+/** Send usb data frame to EPOS.
+  * \param[in] dev The open CAN usb device to send data to.
+  * \param[in] data An array containing the usb data frame to be sent.
+  * \param[in] num The size of the usb data frame to be sent.
+  * \return The number of bytes sent to the CAN usb device or the
   *   negative error code.
   */
-int can_serial_send(
+int can_usb_send(
   can_device_p dev,
   unsigned char* data,
   ssize_t num);
 
-/** Receive serial data frame from EPOS.
-  * \param[in] dev The open CAN serial device to reveice data from.
-  * \param[out] data An array representing the serial data frame received.
-  * \return The number of bytes received from the CAN serial device or the
+/** Receive usb data frame from EPOS.
+  * \param[in] dev The open CAN usb device to reveice data from.
+  * \param[out] data An array representing the usb data frame received.
+  * \return The number of bytes received from the CAN usb device or the
   *   negative error code.
   */
-int can_serial_receive(
+int can_usb_receive(
   can_device_p dev,
   unsigned char* data);
 
@@ -144,7 +139,7 @@ int can_serial_receive(
   * \param[in] num The number of bytes in the array.
   * \return The number of reordered bytes within the data frame.
   */
-ssize_t can_serial_change_byte_order(
+ssize_t can_usb_change_byte_order(
   unsigned char* data,
   ssize_t num);
 
@@ -155,7 +150,7 @@ ssize_t can_serial_change_byte_order(
   * \param[in] num The number of bytes in the word array.
   * \return The number of reordered bytes within the data frame.
   */
-ssize_t can_serial_change_word_order(
+ssize_t can_usb_change_word_order(
   unsigned char* data,
   ssize_t num);
 
@@ -168,7 +163,7 @@ ssize_t can_serial_change_word_order(
   * \param[out] crc_value An array of two bytes to store the CRC-word.
   * \return The number of words built from the array.
   */
-ssize_t can_serial_calc_crc(
+ssize_t can_usb_calc_crc(
   unsigned char* data,
   ssize_t num,
   unsigned char* crc_value);

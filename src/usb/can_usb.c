@@ -38,14 +38,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 const char* can_usb_errors[] = {
   "success",
-  "CAN serial conversion error",
-  "CAN serial send failed",
-  "CAN serial receive failed",
-  "error reading from CAN serial device",
-  "error writing to CAN serial device",
-  "CAN serial device not responding",
-  "unexpected response from CAN serial device",
-  "CAN serial checksum error",
+  "CAN usb conversion error",
+  "CAN usb send failed",
+  "CAN usb receive failed",
+  "error reading from CAN usb device",
+  "error writing to CAN usb device",
+  "CAN usb device not responding",
+  "unexpected response from CAN usb device",
+  "CAN usb checksum error",
 };
 
 param_t can_usb_default_params[] = {
@@ -53,8 +53,8 @@ param_t can_usb_default_params[] = {
 };
 
 config_t can_default_config = {
-  can_serial_default_params,
-  sizeof(can_serial_default_params)/sizeof(param_t),
+  can_usb_default_params,
+  sizeof(can_usb_default_params)/sizeof(param_t),
 };
 
 int can_open(can_device_p dev) {
@@ -111,8 +111,8 @@ int can_send_message(can_device_p dev, can_message_p message) {
   unsigned char data[64];
   int num;
 
-  num = can_serial_from_epos(dev, message, data);
-  if ((num > 0) && (can_serial_send(dev, data, num) > 0)) {
+  num = can_usb_from_epos(dev, message, data);
+  if ((num > 0) && (can_usb_send(dev, data, num) > 0)) {
     ++dev->num_sent;
     return CAN_ERROR_NONE;
   }
@@ -124,8 +124,8 @@ int can_receive_message(can_device_p dev, can_message_p message) {
   unsigned char data[64];
   int num;
 
-  num = can_serial_receive(dev, data);
-  if ((num > 0) && !can_serial_to_epos(dev, data, message)) {
+  num = can_usb_receive(dev, data);
+  if ((num > 0) && !can_usb_to_epos(dev, data, message)) {
     ++dev->num_received;
     return CAN_ERROR_NONE;
   }
@@ -133,11 +133,11 @@ int can_receive_message(can_device_p dev, can_message_p message) {
     return CAN_ERROR_RECEIVE;
 }
 
-int can_serial_from_epos(can_device_p dev, can_message_p message,
+int can_usb_from_epos(can_device_p dev, can_message_p message,
   unsigned char* data) {
   switch (message->content[0]) {
-    case CAN_SERIAL_WRITE_SEND_1_BYTE:
-      data[0] = CAN_SERIAL_OPCODE_WRITE;
+    case CAN_USB_WRITE_SEND_1_BYTE:
+      data[0] = CAN_USB_OPCODE_WRITE;
       data[1] = 0x02;
       data[2] = message->content[2];
       data[3] = message->content[1];
@@ -148,8 +148,8 @@ int can_serial_from_epos(can_device_p dev, can_message_p message,
       data[8] = 0x00;
       data[9] = 0x00;
       return 10;
-    case CAN_SERIAL_WRITE_SEND_2_BYTE:
-      data[0] = CAN_SERIAL_OPCODE_WRITE;
+    case CAN_USB_WRITE_SEND_2_BYTE:
+      data[0] = CAN_USB_OPCODE_WRITE;
       data[1] = 0x02;
       data[2] = message->content[2];
       data[3] = message->content[1];
@@ -160,8 +160,8 @@ int can_serial_from_epos(can_device_p dev, can_message_p message,
       data[8] = 0x00;
       data[9] = 0x00;
       return 10;
-    case CAN_SERIAL_WRITE_SEND_4_BYTE:
-      data[0] = CAN_SERIAL_OPCODE_WRITE;
+    case CAN_USB_WRITE_SEND_4_BYTE:
+      data[0] = CAN_USB_OPCODE_WRITE;
       data[1] = 0x03;
       data[2] = message->content[2];
       data[3] = message->content[1];
@@ -174,8 +174,8 @@ int can_serial_from_epos(can_device_p dev, can_message_p message,
       data[10] = 0x00;
       data[11] = 0x00;
       return 12;
-    case CAN_SERIAL_READ_SEND:
-      data[0] = CAN_SERIAL_OPCODE_READ;
+    case CAN_USB_READ_SEND:
+      data[0] = CAN_USB_OPCODE_READ;
       data[1] = 0x01;
       data[2] = message->content[2];
       data[3] = message->content[1];
@@ -186,29 +186,29 @@ int can_serial_from_epos(can_device_p dev, can_message_p message,
       return 8;
   }
 
-  return -CAN_SERIAL_ERROR_CONVERT;
+  return -CAN_USB_ERROR_CONVERT;
 }
 
-int can_serial_to_epos(can_device_p dev, unsigned char* data, can_message_p
+int can_usb_to_epos(can_device_p dev, unsigned char* data, can_message_p
   message) {
   int i, error = 0;
 
   if ((data[2] == 0) && (data[3] == 0) && (data[4] == 0) && (data[5] == 0)) {
     switch (message->content[0]) {
-      case CAN_SERIAL_WRITE_SEND_1_BYTE:
-        message->content[0] = CAN_SERIAL_WRITE_RECEIVE;
+      case CAN_USB_WRITE_SEND_1_BYTE:
+        message->content[0] = CAN_USB_WRITE_RECEIVE;
         break;
-      case CAN_SERIAL_WRITE_SEND_2_BYTE:
-        message->content[0] = CAN_SERIAL_WRITE_RECEIVE;
+      case CAN_USB_WRITE_SEND_2_BYTE:
+        message->content[0] = CAN_USB_WRITE_RECEIVE;
         break;
-      case CAN_SERIAL_WRITE_SEND_4_BYTE:
-        message->content[0] = CAN_SERIAL_WRITE_RECEIVE;
+      case CAN_USB_WRITE_SEND_4_BYTE:
+        message->content[0] = CAN_USB_WRITE_RECEIVE;
         break;
-      case CAN_SERIAL_READ_SEND:
-        message->content[0] = CAN_SERIAL_READ_RECEIVE_UNDEFINED;
+      case CAN_USB_READ_SEND:
+        message->content[0] = CAN_USB_READ_RECEIVE_UNDEFINED;
         break;
       default:
-        return -CAN_SERIAL_ERROR_CONVERT;
+        return -CAN_USB_ERROR_CONVERT;
     }
 
     message->content[1] = message->content[2];
@@ -220,10 +220,10 @@ int can_serial_to_epos(can_device_p dev, unsigned char* data, can_message_p
     message->content[4] = data[9];
   }
   else {
-    message->id -= CAN_SERIAL_SEND_ID;
-    message->id += CAN_SERIAL_RECEIVE_ID;
+    message->id -= CAN_USB_SEND_ID;
+    message->id += CAN_USB_RECEIVE_ID;
 
-    message->content[0] = CAN_SERIAL_ABORT;
+    message->content[0] = CAN_USB_ABORT;
     message->content[1] = message->content[2];
     message->content[2] = message->content[3];
     message->content[3] = message->content[4];
@@ -234,113 +234,113 @@ int can_serial_to_epos(can_device_p dev, unsigned char* data, can_message_p
   }
   message->length = 8;
 
-  return CAN_SERIAL_ERROR_NONE;
+  return CAN_USB_ERROR_NONE;
 }
 
-int can_serial_send(can_device_p dev, unsigned char* data, ssize_t num) {
+int can_usb_send(can_device_p dev, unsigned char* data, ssize_t num) {
   unsigned char buffer;
   unsigned char crc_value[2];
   int i, num_recv = 0;
 
   if (!dev->comm_dev)
-    return -CAN_SERIAL_ERROR_SEND;
+    return -CAN_USB_ERROR_SEND;
 
-  can_serial_calc_crc(data, num, crc_value);
+  can_usb_calc_crc(data, num, crc_value);
   data[num-2] = crc_value[0];
   data[num-1] = crc_value[1];
 
-  can_serial_change_byte_order(data, num);
+  can_usb_change_byte_order(data, num);
 
-  if (serial_write(dev->comm_dev, data, 1) != 1)
-    return -CAN_SERIAL_ERROR_WRITE;
+  if (usb_write(dev->comm_dev, data, 1) != 1)
+    return -CAN_USB_ERROR_WRITE;
 
-  num_recv = serial_read(dev->comm_dev, &buffer, 1);
-  if ((num_recv == 1) && (buffer == CAN_SERIAL_FAILED))
-    return -CAN_SERIAL_ERROR_SEND;
+  num_recv = usb_read(dev->comm_dev, &buffer, 1);
+  if ((num_recv == 1) && (buffer == CAN_USB_FAILED))
+    return -CAN_USB_ERROR_SEND;
   else if (num_recv == 0)
-    return -CAN_SERIAL_ERROR_NO_RESPONSE;
+    return -CAN_USB_ERROR_NO_RESPONSE;
   else if (num_recv < 0)
-    return -CAN_SERIAL_ERROR_READ;
-  else if (buffer != CAN_SERIAL_OKAY)
-    return -CAN_SERIAL_ERROR_UNEXPECTED_RESPONSE;
+    return -CAN_USB_ERROR_READ;
+  else if (buffer != CAN_USB_OKAY)
+    return -CAN_USB_ERROR_UNEXPECTED_RESPONSE;
 
-  if (serial_write(dev->comm_dev, &data[1], num-1) != num-1)
-    return -CAN_SERIAL_ERROR_WRITE;
+  if (usb_write(dev->comm_dev, &data[1], num-1) != num-1)
+    return -CAN_USB_ERROR_WRITE;
 
-  num_recv = serial_read(dev->comm_dev, &buffer, 1);
-  if ((num_recv == 1) && (buffer == CAN_SERIAL_FAILED))
-    return -CAN_SERIAL_ERROR_SEND;
+  num_recv = usb_read(dev->comm_dev, &buffer, 1);
+  if ((num_recv == 1) && (buffer == CAN_USB_FAILED))
+    return -CAN_USB_ERROR_SEND;
   else if (num_recv == 0)
-    return -CAN_SERIAL_ERROR_NO_RESPONSE;
+    return -CAN_USB_ERROR_NO_RESPONSE;
   else if (num_recv < 0)
-    return -CAN_SERIAL_ERROR_READ;
-  else if (buffer != CAN_SERIAL_OKAY)
-    return -CAN_SERIAL_ERROR_UNEXPECTED_RESPONSE;
+    return -CAN_USB_ERROR_READ;
+  else if (buffer != CAN_USB_OKAY)
+    return -CAN_USB_ERROR_UNEXPECTED_RESPONSE;
 
   return num;
 }
 
-int can_serial_receive(can_device_p dev, unsigned char* data) {
+int can_usb_receive(can_device_p dev, unsigned char* data) {
   unsigned char buffer, crc_value[2];
   int i, num_recv = 0, num_exp = 0;
 
   if (!dev->comm_dev)
-    return -CAN_SERIAL_ERROR_RECEIVE;
+    return -CAN_USB_ERROR_RECEIVE;
 
-  num_recv = serial_read(dev->comm_dev, &buffer, 1);
-  if ((num_recv == 1) && (buffer == CAN_SERIAL_RESPONSE))
-    data[0] = CAN_SERIAL_RESPONSE;
+  num_recv = usb_read(dev->comm_dev, &buffer, 1);
+  if ((num_recv == 1) && (buffer == CAN_USB_RESPONSE))
+    data[0] = CAN_USB_RESPONSE;
   else if (num_recv == 0)
-    return -CAN_SERIAL_ERROR_NO_RESPONSE;
+    return -CAN_USB_ERROR_NO_RESPONSE;
   else if (num_recv > 0)
-    return -CAN_SERIAL_ERROR_UNEXPECTED_RESPONSE;
+    return -CAN_USB_ERROR_UNEXPECTED_RESPONSE;
   else
-    return -CAN_SERIAL_ERROR_READ;
+    return -CAN_USB_ERROR_READ;
 
-  buffer = CAN_SERIAL_OKAY;
-  if (serial_write(dev->comm_dev, &buffer, 1) < 1)
-    return -CAN_SERIAL_ERROR_WRITE;
+  buffer = CAN_USB_OKAY;
+  if (usb_write(dev->comm_dev, &buffer, 1) < 1)
+    return -CAN_USB_ERROR_WRITE;
 
-  num_recv = serial_read(dev->comm_dev, &buffer, 1);
+  num_recv = usb_read(dev->comm_dev, &buffer, 1);
   if (num_recv == 1)
     data[1] = buffer;
   else if (num_recv == 0)
-    return -CAN_SERIAL_ERROR_NO_RESPONSE;
+    return -CAN_USB_ERROR_NO_RESPONSE;
   else
-    return -CAN_SERIAL_ERROR_READ;
+    return -CAN_USB_ERROR_READ;
 
   num_exp = (data[1]+2)*sizeof(unsigned short);
   for (i = 0; i < num_exp; ++i) {
-    if (serial_read(dev->comm_dev, &buffer, 1) == 1)
+    if (usb_read(dev->comm_dev, &buffer, 1) == 1)
       data[i+2] = buffer;
     else
       break;
   }
   if (i != num_exp)
-    return -CAN_SERIAL_ERROR_UNEXPECTED_RESPONSE;
+    return -CAN_USB_ERROR_UNEXPECTED_RESPONSE;
   num_recv = i+2;
 
-  can_serial_change_byte_order(data, num_recv);
+  can_usb_change_byte_order(data, num_recv);
 
-  can_serial_calc_crc(data, num_recv, crc_value);
+  can_usb_calc_crc(data, num_recv, crc_value);
   if ((crc_value[0] == 0x00) && (crc_value[1] == 0x00)) {
-    buffer = CAN_SERIAL_OKAY;
-    if (serial_write(dev->comm_dev, &buffer, 1) != 1)
-      return -CAN_SERIAL_ERROR_WRITE;
+    buffer = CAN_USB_OKAY;
+    if (usb_write(dev->comm_dev, &buffer, 1) != 1)
+      return -CAN_USB_ERROR_WRITE;
   }
   else {
-    buffer = CAN_SERIAL_FAILED;
-    if (serial_write(dev->comm_dev, &buffer, 1) != 1)
-      return -CAN_SERIAL_ERROR_WRITE;
-    return -CAN_SERIAL_ERROR_CRC;
+    buffer = CAN_USB_FAILED;
+    if (usb_write(dev->comm_dev, &buffer, 1) != 1)
+      return -CAN_USB_ERROR_WRITE;
+    return -CAN_USB_ERROR_CRC;
   }
 
-  can_serial_change_word_order(data, num_recv);
+  can_usb_change_word_order(data, num_recv);
 
   return num_recv;
 }
 
-ssize_t can_serial_change_byte_order(unsigned char* data, ssize_t num) {
+ssize_t can_usb_change_byte_order(unsigned char* data, ssize_t num) {
   unsigned char tmp;
   int i;
 
@@ -354,7 +354,7 @@ ssize_t can_serial_change_byte_order(unsigned char* data, ssize_t num) {
   return i;
 }
 
-ssize_t can_serial_change_word_order(unsigned char* data, ssize_t num) {
+ssize_t can_usb_change_word_order(unsigned char* data, ssize_t num) {
   unsigned char tmp_lb, tmp_hb;
   int i;
 
@@ -372,13 +372,13 @@ ssize_t can_serial_change_word_order(unsigned char* data, ssize_t num) {
   return i;
 }
 
-ssize_t can_serial_calc_crc(unsigned char* data, ssize_t num, unsigned char*
+ssize_t can_usb_calc_crc(unsigned char* data, ssize_t num, unsigned char*
   crc_value) {
   unsigned short* word_data = (unsigned short*)data;
   ssize_t num_words = num/2;
   unsigned short crc;
 
-  crc = can_serial_crc_alg(word_data, num_words);
+  crc = can_usb_crc_alg(word_data, num_words);
   crc_value[0] = (crc >> 8);
   crc_value[1] = crc;
 
